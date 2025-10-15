@@ -682,7 +682,7 @@ const AnimationApp = () => {
         }}>
           ✨ Satisfying Animations
         </h1>
-      
+
         {/* Controls */}
         <div style={{
           marginBottom: '30px',
@@ -691,7 +691,6 @@ const AnimationApp = () => {
           borderRadius: '12px',
           border: '1px solid rgba(100, 100, 255, 0.2)'
         }}>
-          
           <div style={{ marginBottom: '15px' }}>
             <label style={{
               display: 'block',
@@ -715,30 +714,7 @@ const AnimationApp = () => {
               }}
             />
           </div>
-            {/* Speed Control */}
-  <div style={{ marginBottom: '15px' }}>
-    <label style={{
-      display: 'block',
-      color: '#fff',
-      fontSize: '13px',
-      marginBottom: '8px',
-      fontWeight: '500'
-    }}>
-      Speed: {speed.toFixed(1)}x
-    </label>
-    <input
-      type="range"
-      min="0.2"
-      max="3"
-      step="0.1"
-      value={speed}
-      onChange={(e) => setSpeed(parseFloat(e.target.value))}
-      style={{
-        width: '100%',
-        accentColor: '#667eea'
-      }}
-    />
-  </div>
+
           <div>
             <label style={{
               display: 'block',
@@ -849,3 +825,4 @@ const AnimationApp = () => {
 };
 
 export default AnimationApp;
+             
