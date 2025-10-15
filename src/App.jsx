@@ -1,32 +1,305 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './App.css';
 
 const AnimationApp = () => {
   const [selectedAnimation, setSelectedAnimation] = useState(0);
+  const [speed, setSpeed] = useState(1);
+  const [size, setSize] = useState(1);
+  const [hueShift, setHueShift] = useState(0);
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
 
-  const animations = [
-    { id: 0, name: '🌊 Wave Pool', type: 'wavePool' },
-    { id: 1, name: '🎯 Orbit Dance', type: 'orbitDance' },
-    { id: 2, name: '✨ Particle Rain', type: 'particleRain' },
-    { id: 3, name: '🌀 Spiral Galaxy', type: 'spiralGalaxy' },
-    { id: 4, name: '💫 Bouncing Balls', type: 'bouncingBalls' },
-    { id: 5, name: '🔮 Gravity Wells', type: 'gravityWells' },
-    { id: 6, name: '🌈 Color Waves', type: 'colorWaves' },
-    { id: 7, name: '⚡ Lightning Orbs', type: 'lightningOrbs' },
-    { id: 8, name: '🎪 Pendulum Harmony', type: 'pendulumHarmony' },
-    { id: 9, name: '🌸 Flower Bloom', type: 'flowerBloom' },
-    { id: 10, name: '🎨 Paint Splash', type: 'paintSplash' },
-    { id: 11, name: '🔷 Hexagon Grid', type: 'hexagonGrid' },
-    { id: 12, name: '🌟 Star Field', type: 'starField' },
-    { id: 13, name: '🧲 Magnetic Particles', type: 'magneticParticles' },
-    { id: 14, name: '🎭 Ripple Effect', type: 'rippleEffect' },
-    { id: 15, name: '🎪 Carousel Spin', type: 'carouselSpin' },
-    { id: 16, name: '🌊 Fluid Simulation', type: 'fluidSimulation' },
-    { id: 17, name: '🎯 Target Practice', type: 'targetPractice' },
-    { id: 18, name: '🌀 Vortex Flow', type: 'vortexFlow' },
-    { id: 19, name: '✨ Sparkle Trail', type: 'sparkleTrail' }
+  // Data-driven animation configurations
+  const animationData = [
+    {
+      id: 0,
+      name: '🌊 Wave Pool',
+      type: 'wavePool',
+      config: {
+        cols: 50,
+        rows: 30,
+        baseSpeed: 0.03,
+        baseAmplitude: 20,
+        baseParticleSize: 3,
+        baseHue: 200,
+        offsetMultiplier: 0.1
+      }
+    },
+    {
+      id: 1,
+      name: '🎯 Orbit Dance',
+      type: 'orbitDance',
+      config: {
+        count: 8,
+        baseRadius: 100,
+        radiusIncrement: 20,
+        baseSpeed: 0.02,
+        speedIncrement: 0.005,
+        baseSize: 8,
+        baseHue: 0,
+        hueIncrement: 45
+      }
+    },
+    {
+      id: 2,
+      name: '✨ Particle Rain',
+      type: 'particleRain',
+      config: {
+        count: 100,
+        baseSpeed: 2,
+        speedVariation: 3,
+        baseLength: 10,
+        lengthVariation: 20,
+        baseHue: 180,
+        hueVariation: 60,
+        lineWidth: 2
+      }
+    },
+    {
+      id: 3,
+      name: '🌀 Spiral Galaxy',
+      type: 'spiralGalaxy',
+      config: {
+        particleCount: 200,
+        spiralTurns: 8,
+        maxRadius: 200,
+        baseSpeed: 0.01,
+        speedVariation: 0.02,
+        baseSize: 2,
+        sizeVariation: 3,
+        baseHue: 260
+      }
+    },
+    {
+      id: 4,
+      name: '💫 Bouncing Balls',
+      type: 'bouncingBalls',
+      config: {
+        count: 30,
+        baseRadius: 10,
+        radiusVariation: 20,
+        baseVelocity: 4,
+        gravity: 0.2,
+        damping: 0.9,
+        baseHue: 0
+      }
+    },
+    {
+      id: 5,
+      name: '🔮 Gravity Wells',
+      type: 'gravityWells',
+      config: {
+        particleCount: 150,
+        wellCount: 2,
+        wellPositions: [0.3, 0.7],
+        force: 0.5,
+        friction: 0.99,
+        particleSize: 3,
+        wellSize: 20,
+        baseHue: 0
+      }
+    },
+    {
+      id: 6,
+      name: '🌈 Color Waves',
+      type: 'colorWaves',
+      config: {
+        spacing: 5,
+        wave1Frequency: 0.01,
+        wave1Amplitude: 50,
+        wave2Frequency: 0.02,
+        wave2Amplitude: 30,
+        wave2SpeedMultiplier: 1.5,
+        baseSpeed: 2,
+        baseHue: 0
+      }
+    },
+    {
+      id: 7,
+      name: '⚡ Lightning Orbs',
+      type: 'lightningOrbs',
+      config: {
+        orbCount: 5,
+        orbRadius: 30,
+        connectionChance: 0.1,
+        lineWidth: 2,
+        baseHue: 180,
+        glowAmount: 30
+      }
+    },
+    {
+      id: 8,
+      name: '🎪 Pendulum Harmony',
+      type: 'pendulumHarmony',
+      config: {
+        count: 10,
+        baseLength: 100,
+        lengthIncrement: 20,
+        initialAngle: Math.PI / 4,
+        gravity: 0.5,
+        damping: 0.995,
+        bobSize: 10,
+        lineWidth: 2,
+        baseHue: 0,
+        hueIncrement: 36
+      }
+    },
+    {
+      id: 9,
+      name: '🌸 Flower Bloom',
+      type: 'flowerBloom',
+      config: {
+        petalCount: 12,
+        baseRadius: 100,
+        radiusVariation: 50,
+        baseSize: 20,
+        sizeVariation: 10,
+        rotationSpeed: 0.01,
+        pulseSpeed: 0.02,
+        breatheSpeed: 0.05,
+        baseHue: 0,
+        hueIncrement: 30
+      }
+    },
+    {
+      id: 10,
+      name: '🎨 Paint Splash',
+      type: 'paintSplash',
+      config: {
+        particlesPerSplash: 50,
+        splashInterval: 1000,
+        baseSpeed: 2,
+        speedVariation: 5,
+        gravity: 0.2,
+        particleSize: 3,
+        particleLife: 100,
+        baseHue: 0
+      }
+    },
+    {
+      id: 11,
+      name: '🔷 Hexagon Grid',
+      type: 'hexagonGrid',
+      config: {
+        hexSize: 30,
+        waveSpeed: 0.05,
+        baseHue: 200,
+        hueVariation: 60,
+        brightnessMin: 30,
+        brightnessMax: 70
+      }
+    },
+    {
+      id: 12,
+      name: '🌟 Star Field',
+      type: 'starField',
+      config: {
+        starCount: 200,
+        baseSpeed: 5,
+        maxStarSize: 5,
+        baseHue: 200,
+        hueVariation: 60
+      }
+    },
+    {
+      id: 13,
+      name: '🧲 Magnetic Particles',
+      type: 'magneticParticles',
+      config: {
+        particleCount: 100,
+        magnetForce: 0.1,
+        maxForce: 5,
+        minDistance: 200,
+        friction: 0.95,
+        particleSize: 4,
+        baseHue: 0
+      }
+    },
+    {
+      id: 14,
+      name: '🎭 Ripple Effect',
+      type: 'rippleEffect',
+      config: {
+        rippleSpeed: 3,
+        maxRadius: 200,
+        lineWidth: 3,
+        baseHue: 0
+      }
+    },
+    {
+      id: 15,
+      name: '🎪 Carousel Spin',
+      type: 'carouselSpin',
+      config: {
+        itemCount: 12,
+        radius: 150,
+        rotationSpeed: 0.02,
+        baseSize: 20,
+        sizeVariation: 10,
+        perspective: 0.5,
+        baseHue: 0
+      }
+    },
+    {
+      id: 16,
+      name: '🌊 Fluid Simulation',
+      type: 'fluidSimulation',
+      config: {
+        particleCount: 150,
+        baseVelocity: 2,
+        interactionDistance: 50,
+        repulsionForce: 0.1,
+        friction: 0.99,
+        particleSize: 4,
+        baseHue: 180,
+        hueVariation: 60
+      }
+    },
+    {
+      id: 17,
+      name: '🎯 Target Practice',
+      type: 'targetPractice',
+      config: {
+        ringCount: 8,
+        baseRadius: 30,
+        radiusIncrement: 25,
+        rotationSpeed: 0.02,
+        baseHue: 0,
+        hueIncrement: 20
+      }
+    },
+    {
+      id: 18,
+      name: '🌀 Vortex Flow',
+      type: 'vortexFlow',
+      config: {
+        particleCount: 200,
+        maxRadius: 300,
+        minRadius: 10,
+        baseSpeed: 0.02,
+        speedVariation: 0.02,
+        pullSpeed: 0.5,
+        particleSize: 3,
+        baseHue: 0
+      }
+    },
+    {
+      id: 19,
+      name: '✨ Sparkle Trail',
+      type: 'sparkleTrail',
+      config: {
+        sparklesPerFrame: 3,
+        autoSparkles: 2,
+        autoRadius: 150,
+        autoRadiusY: 100,
+        autoSpeed: 0.05,
+        particleLife: 60,
+        baseSize: 2,
+        sizeVariation: 4,
+        baseVelocity: 2,
+        glowAmount: 10,
+        baseHue: 0
+      }
+    }
   ];
 
   useEffect(() => {
@@ -37,57 +310,55 @@ const AnimationApp = () => {
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
 
-    const animate = animations[selectedAnimation].type;
-    
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
 
+    const currentAnim = animationData[selectedAnimation];
+    const config = { ...currentAnim.config, speed, size, hueShift };
+
     const animationFunctions = {
-      wavePool: () => createWavePool(ctx, canvas),
-      orbitDance: () => createOrbitDance(ctx, canvas),
-      particleRain: () => createParticleRain(ctx, canvas),
-      spiralGalaxy: () => createSpiralGalaxy(ctx, canvas),
-      bouncingBalls: () => createBouncingBalls(ctx, canvas),
-      gravityWells: () => createGravityWells(ctx, canvas),
-      colorWaves: () => createColorWaves(ctx, canvas),
-      lightningOrbs: () => createLightningOrbs(ctx, canvas),
-      pendulumHarmony: () => createPendulumHarmony(ctx, canvas),
-      flowerBloom: () => createFlowerBloom(ctx, canvas),
-      paintSplash: () => createPaintSplash(ctx, canvas),
-      hexagonGrid: () => createHexagonGrid(ctx, canvas),
-      starField: () => createStarField(ctx, canvas),
-      magneticParticles: () => createMagneticParticles(ctx, canvas),
-      rippleEffect: () => createRippleEffect(ctx, canvas),
-      carouselSpin: () => createCarouselSpin(ctx, canvas),
-      fluidSimulation: () => createFluidSimulation(ctx, canvas),
-      targetPractice: () => createTargetPractice(ctx, canvas),
-      vortexFlow: () => createVortexFlow(ctx, canvas),
-      sparkleTrail: () => createSparkleTrail(ctx, canvas)
+      wavePool: () => createWavePool(ctx, canvas, config),
+      orbitDance: () => createOrbitDance(ctx, canvas, config),
+      particleRain: () => createParticleRain(ctx, canvas, config),
+      spiralGalaxy: () => createSpiralGalaxy(ctx, canvas, config),
+      bouncingBalls: () => createBouncingBalls(ctx, canvas, config),
+      gravityWells: () => createGravityWells(ctx, canvas, config),
+      colorWaves: () => createColorWaves(ctx, canvas, config),
+      lightningOrbs: () => createLightningOrbs(ctx, canvas, config),
+      pendulumHarmony: () => createPendulumHarmony(ctx, canvas, config),
+      flowerBloom: () => createFlowerBloom(ctx, canvas, config),
+      paintSplash: () => createPaintSplash(ctx, canvas, config),
+      hexagonGrid: () => createHexagonGrid(ctx, canvas, config),
+      starField: () => createStarField(ctx, canvas, config),
+      magneticParticles: () => createMagneticParticles(ctx, canvas, config),
+      rippleEffect: () => createRippleEffect(ctx, canvas, config),
+      carouselSpin: () => createCarouselSpin(ctx, canvas, config),
+      fluidSimulation: () => createFluidSimulation(ctx, canvas, config),
+      targetPractice: () => createTargetPractice(ctx, canvas, config),
+      vortexFlow: () => createVortexFlow(ctx, canvas, config),
+      sparkleTrail: () => createSparkleTrail(ctx, canvas, config)
     };
 
-    animationFunctions[animate]();
+    animationFunctions[currentAnim.type]();
 
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [selectedAnimation]);
+  }, [selectedAnimation, speed, size, hueShift]);
 
-  // Animation 1: Wave Pool
-  const createWavePool = (ctx, canvas) => {
+  // Animation implementations with config parameters
+  const createWavePool = (ctx, canvas, config) => {
     const particles = [];
-    const cols = 50;
-    const rows = 30;
-    
-    for (let i = 0; i < cols; i++) {
-      for (let j = 0; j < rows; j++) {
+    for (let i = 0; i < config.cols; i++) {
+      for (let j = 0; j < config.rows; j++) {
         particles.push({
-          x: (canvas.width / cols) * i,
-          y: (canvas.height / rows) * j,
-          baseY: (canvas.height / rows) * j,
-          offset: (i + j) * 0.1
+          x: (canvas.width / config.cols) * i,
+          y: (canvas.height / config.rows) * j,
+          baseY: (canvas.height / config.rows) * j,
+          offset: (i + j) * config.offsetMultiplier
         });
       }
     }
@@ -98,31 +369,30 @@ const AnimationApp = () => {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       particles.forEach(p => {
-        const wave = Math.sin(time + p.offset) * 20;
-        ctx.fillStyle = `hsl(${200 + wave * 2}, 70%, 60%)`;
+        const wave = Math.sin(time + p.offset) * config.baseAmplitude * config.size;
+        ctx.fillStyle = `hsl(${(config.baseHue + wave * 2 + config.hueShift) % 360}, 70%, 60%)`;
         ctx.beginPath();
-        ctx.arc(p.x, p.baseY + wave, 3, 0, Math.PI * 2);
+        ctx.arc(p.x, p.baseY + wave, config.baseParticleSize * config.size, 0, Math.PI * 2);
         ctx.fill();
       });
 
-      time += 0.03;
+      time += config.baseSpeed * config.speed;
       animationRef.current = requestAnimationFrame(draw);
     };
     draw();
   };
 
-  // Animation 2: Orbit Dance
-  const createOrbitDance = (ctx, canvas) => {
+  const createOrbitDance = (ctx, canvas, config) => {
     const orbiters = [];
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < config.count; i++) {
       orbiters.push({
-        angle: (Math.PI * 2 / 8) * i,
-        radius: 100 + i * 20,
-        speed: 0.02 + i * 0.005,
-        color: `hsl(${i * 45}, 80%, 60%)`
+        angle: (Math.PI * 2 / config.count) * i,
+        radius: (config.baseRadius + i * config.radiusIncrement) * config.size,
+        speed: (config.baseSpeed + i * config.speedIncrement) * config.speed,
+        color: `hsl(${(config.baseHue + i * config.hueIncrement + config.hueShift) % 360}, 80%, 60%)`
       });
     }
 
@@ -138,7 +408,7 @@ const AnimationApp = () => {
         ctx.shadowBlur = 20;
         ctx.shadowColor = orb.color;
         ctx.beginPath();
-        ctx.arc(x, y, 8, 0, Math.PI * 2);
+        ctx.arc(x, y, config.baseSize * config.size, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
 
@@ -150,17 +420,16 @@ const AnimationApp = () => {
     draw();
   };
 
-  // Animation 3: Particle Rain
-  const createParticleRain = (ctx, canvas) => {
+  const createParticleRain = (ctx, canvas, config) => {
     const drops = [];
     
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < config.count; i++) {
       drops.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        speed: 2 + Math.random() * 3,
-        length: 10 + Math.random() * 20,
-        color: `hsl(${180 + Math.random() * 60}, 70%, 60%)`
+        speed: (config.baseSpeed + Math.random() * config.speedVariation) * config.speed,
+        length: (config.baseLength + Math.random() * config.lengthVariation) * config.size,
+        color: `hsl(${(config.baseHue + Math.random() * config.hueVariation + config.hueShift) % 360}, 70%, 60%)`
       });
     }
 
@@ -170,7 +439,7 @@ const AnimationApp = () => {
 
       drops.forEach(drop => {
         ctx.strokeStyle = drop.color;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = config.lineWidth * config.size;
         ctx.beginPath();
         ctx.moveTo(drop.x, drop.y);
         ctx.lineTo(drop.x, drop.y + drop.length);
@@ -188,21 +457,20 @@ const AnimationApp = () => {
     draw();
   };
 
-  // Animation 4: Spiral Galaxy
-  const createSpiralGalaxy = (ctx, canvas) => {
+  const createSpiralGalaxy = (ctx, canvas, config) => {
     const particles = [];
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
 
-    for (let i = 0; i < 200; i++) {
-      const angle = (i / 200) * Math.PI * 8;
-      const radius = (i / 200) * 200;
+    for (let i = 0; i < config.particleCount; i++) {
+      const angle = (i / config.particleCount) * Math.PI * config.spiralTurns;
+      const radius = (i / config.particleCount) * config.maxRadius * config.size;
       particles.push({
         angle,
         radius,
-        speed: 0.01 + (1 - i / 200) * 0.02,
-        size: 2 + Math.random() * 3,
-        color: `hsl(${260 + i / 2}, 80%, 60%)`
+        speed: (config.baseSpeed + (1 - i / config.particleCount) * config.speedVariation) * config.speed,
+        size: (config.baseSize + Math.random() * config.sizeVariation) * config.size,
+        color: `hsl(${(config.baseHue + i / 2 + config.hueShift) % 360}, 80%, 60%)`
       });
     }
 
@@ -227,19 +495,18 @@ const AnimationApp = () => {
     draw();
   };
 
-  // Animation 5: Bouncing Balls
-  const createBouncingBalls = (ctx, canvas) => {
+  const createBouncingBalls = (ctx, canvas, config) => {
     const balls = [];
     
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < config.count; i++) {
       balls.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 4,
-        vy: (Math.random() - 0.5) * 4,
-        radius: 10 + Math.random() * 20,
-        color: `hsl(${Math.random() * 360}, 70%, 60%)`,
-        gravity: 0.2
+        vx: (Math.random() - 0.5) * config.baseVelocity * config.speed,
+        vy: (Math.random() - 0.5) * config.baseVelocity * config.speed,
+        radius: (config.baseRadius + Math.random() * config.radiusVariation) * config.size,
+        color: `hsl(${(config.baseHue + Math.random() * 360 + config.hueShift) % 360}, 70%, 60%)`,
+        gravity: config.gravity * config.speed
       });
     }
 
@@ -253,11 +520,11 @@ const AnimationApp = () => {
         ball.y += ball.vy;
 
         if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
-          ball.vx *= -0.9;
+          ball.vx *= -config.damping;
           ball.x = ball.x + ball.radius > canvas.width ? canvas.width - ball.radius : ball.radius;
         }
         if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
-          ball.vy *= -0.9;
+          ball.vy *= -config.damping;
           ball.y = ball.y + ball.radius > canvas.height ? canvas.height - ball.radius : ball.radius;
         }
 
@@ -272,21 +539,20 @@ const AnimationApp = () => {
     draw();
   };
 
-  // Animation 6: Gravity Wells
-  const createGravityWells = (ctx, canvas) => {
+  const createGravityWells = (ctx, canvas, config) => {
     const particles = [];
-    const wells = [
-      { x: canvas.width * 0.3, y: canvas.height * 0.5 },
-      { x: canvas.width * 0.7, y: canvas.height * 0.5 }
-    ];
+    const wells = config.wellPositions.map(pos => ({
+      x: canvas.width * pos,
+      y: canvas.height * 0.5
+    }));
 
-    for (let i = 0; i < 150; i++) {
+    for (let i = 0; i < config.particleCount; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         vx: 0,
         vy: 0,
-        color: `hsl(${Math.random() * 360}, 70%, 60%)`
+        color: `hsl(${(config.baseHue + Math.random() * 360 + config.hueShift) % 360}, 70%, 60%)`
       });
     }
 
@@ -299,26 +565,26 @@ const AnimationApp = () => {
           const dx = well.x - p.x;
           const dy = well.y - p.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          const force = 0.5;
+          const force = config.force * config.speed;
           p.vx += (dx / dist) * force;
           p.vy += (dy / dist) * force;
         });
 
-        p.vx *= 0.99;
-        p.vy *= 0.99;
+        p.vx *= config.friction;
+        p.vy *= config.friction;
         p.x += p.vx;
         p.y += p.vy;
 
         ctx.fillStyle = p.color;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, config.particleSize * config.size, 0, Math.PI * 2);
         ctx.fill();
       });
 
       wells.forEach(well => {
         ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
         ctx.beginPath();
-        ctx.arc(well.x, well.y, 20, 0, Math.PI * 2);
+        ctx.arc(well.x, well.y, config.wellSize * config.size, 0, Math.PI * 2);
         ctx.fill();
       });
 
@@ -327,37 +593,34 @@ const AnimationApp = () => {
     draw();
   };
 
-  // Animation 7: Color Waves
-  const createColorWaves = (ctx, canvas) => {
+  const createColorWaves = (ctx, canvas, config) => {
     let time = 0;
     const draw = () => {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      for (let x = 0; x < canvas.width; x += 5) {
-        const wave1 = Math.sin((x + time) * 0.01) * 50;
-        const wave2 = Math.sin((x + time * 1.5) * 0.02) * 30;
+      for (let x = 0; x < canvas.width; x += config.spacing) {
+        const wave1 = Math.sin((x + time) * config.wave1Frequency) * config.wave1Amplitude * config.size;
+        const wave2 = Math.sin((x + time * config.wave2SpeedMultiplier) * config.wave2Frequency) * config.wave2Amplitude * config.size;
         const y = canvas.height / 2 + wave1 + wave2;
         
-        ctx.fillStyle = `hsl(${x / 2 + time}, 70%, 60%)`;
-        ctx.fillRect(x, y, 5, 5);
+        ctx.fillStyle = `hsl(${(config.baseHue + x / 2 + time + config.hueShift) % 360}, 70%, 60%)`;
+        ctx.fillRect(x, y, config.spacing, config.spacing);
       }
 
-      time += 2;
+      time += config.baseSpeed * config.speed;
       animationRef.current = requestAnimationFrame(draw);
     };
     draw();
   };
 
-  // Animation 8: Lightning Orbs
-  const createLightningOrbs = (ctx, canvas) => {
+  const createLightningOrbs = (ctx, canvas, config) => {
     const orbs = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < config.orbCount; i++) {
       orbs.push({
-        x: (canvas.width / 6) * (i + 1),
+        x: (canvas.width / (config.orbCount + 1)) * (i + 1),
         y: canvas.height / 2,
-        radius: 30,
-        connections: []
+        radius: config.orbRadius * config.size
       });
     }
 
@@ -367,9 +630,9 @@ const AnimationApp = () => {
 
       orbs.forEach((orb, i) => {
         orbs.forEach((other, j) => {
-          if (i < j && Math.random() < 0.1) {
-            ctx.strokeStyle = `rgba(100, 200, 255, ${Math.random()})`;
-            ctx.lineWidth = 2;
+          if (i < j && Math.random() < config.connectionChance * config.speed) {
+            ctx.strokeStyle = `hsla(${(config.baseHue + config.hueShift) % 360}, 80%, 70%, ${Math.random()})`;
+            ctx.lineWidth = config.lineWidth * config.size;
             ctx.beginPath();
             ctx.moveTo(orb.x, orb.y);
             ctx.lineTo(other.x, other.y);
@@ -377,9 +640,9 @@ const AnimationApp = () => {
           }
         });
 
-        ctx.fillStyle = `rgba(100, 200, 255, 0.6)`;
-        ctx.shadowBlur = 30;
-        ctx.shadowColor = 'cyan';
+        ctx.fillStyle = `hsla(${(config.baseHue + config.hueShift) % 360}, 80%, 70%, 0.6)`;
+        ctx.shadowBlur = config.glowAmount;
+        ctx.shadowColor = `hsl(${(config.baseHue + config.hueShift) % 360}, 80%, 70%)`;
         ctx.beginPath();
         ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2);
         ctx.fill();
@@ -391,17 +654,16 @@ const AnimationApp = () => {
     draw();
   };
 
-  // Animation 9: Pendulum Harmony
-  const createPendulumHarmony = (ctx, canvas) => {
+  const createPendulumHarmony = (ctx, canvas, config) => {
     const pendulums = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < config.count; i++) {
       pendulums.push({
         x: canvas.width / 2,
         y: 50,
-        length: 100 + i * 20,
-        angle: Math.PI / 4,
+        length: (config.baseLength + i * config.lengthIncrement) * config.size,
+        angle: config.initialAngle,
         velocity: 0,
-        color: `hsl(${i * 36}, 70%, 60%)`
+        color: `hsl(${(config.baseHue + i * config.hueIncrement + config.hueShift) % 360}, 70%, 60%)`
       });
     }
 
@@ -410,18 +672,17 @@ const AnimationApp = () => {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       pendulums.forEach(p => {
-        const gravity = 0.5;
-        const damping = 0.995;
+        const gravity = config.gravity * config.speed;
         const acceleration = (-gravity / p.length) * Math.sin(p.angle);
         p.velocity += acceleration;
-        p.velocity *= damping;
+        p.velocity *= config.damping;
         p.angle += p.velocity;
 
         const bobX = p.x + p.length * Math.sin(p.angle);
         const bobY = p.y + p.length * Math.cos(p.angle);
 
         ctx.strokeStyle = p.color;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = config.lineWidth * config.size;
         ctx.beginPath();
         ctx.moveTo(p.x, p.y);
         ctx.lineTo(bobX, bobY);
@@ -429,7 +690,7 @@ const AnimationApp = () => {
 
         ctx.fillStyle = p.color;
         ctx.beginPath();
-        ctx.arc(bobX, bobY, 10, 0, Math.PI * 2);
+        ctx.arc(bobX, bobY, config.bobSize * config.size, 0, Math.PI * 2);
         ctx.fill();
       });
 
@@ -438,8 +699,7 @@ const AnimationApp = () => {
     draw();
   };
 
-  // Animation 10: Flower Bloom
-  const createFlowerBloom = (ctx, canvas) => {
+  const createFlowerBloom = (ctx, canvas, config) => {
     let time = 0;
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
@@ -448,28 +708,27 @@ const AnimationApp = () => {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      const petals = 12;
-      for (let i = 0; i < petals; i++) {
-        const angle = (Math.PI * 2 / petals) * i + time * 0.01;
-        const radius = 100 + Math.sin(time * 0.02 + i) * 50;
+      for (let i = 0; i < config.petalCount; i++) {
+        const angle = (Math.PI * 2 / config.petalCount) * i + time * config.rotationSpeed;
+        const radius = (config.baseRadius + Math.sin(time * config.pulseSpeed + i) * config.radiusVariation) * config.size;
         const x = centerX + Math.cos(angle) * radius;
         const y = centerY + Math.sin(angle) * radius;
 
-        ctx.fillStyle = `hsl(${i * 30 + time}, 70%, 60%)`;
+        ctx.fillStyle = `hsl(${(config.baseHue + i * config.hueIncrement + time + config.hueShift) % 360}, 70%, 60%)`;
         ctx.beginPath();
-        ctx.arc(x, y, 20 + Math.sin(time * 0.05) * 10, 0, Math.PI * 2);
+        ctx.arc(x, y, (config.baseSize + Math.sin(time * config.breatheSpeed) * config.sizeVariation) * config.size, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      time += 1;
+      time += config.speed;
       animationRef.current = requestAnimationFrame(draw);
     };
     draw();
   };
 
-  // Animation 11: Paint Splash
-  const createPaintSplash = (ctx, canvas) => {
+  const createPaintSplash = (ctx, canvas, config) => {
     const splashes = [];
+    let intervalId;
 
     const createSplash = () => {
       const splash = {
@@ -478,23 +737,23 @@ const AnimationApp = () => {
         particles: []
       };
 
-      for (let i = 0; i < 50; i++) {
+      for (let i = 0; i < config.particlesPerSplash; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const speed = 2 + Math.random() * 5;
+        const speed = (config.baseSpeed + Math.random() * config.speedVariation) * config.speed;
         splash.particles.push({
           x: splash.x,
           y: splash.y,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
-          color: `hsl(${Math.random() * 360}, 70%, 60%)`,
-          life: 100
+          color: `hsl(${(config.baseHue + Math.random() * 360 + config.hueShift) % 360}, 70%, 60%)`,
+          life: config.particleLife
         });
       }
 
       splashes.push(splash);
     };
 
-    setInterval(createSplash, 1000);
+    intervalId = setInterval(createSplash, config.splashInterval / config.speed);
 
     const draw = () => {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
@@ -504,14 +763,14 @@ const AnimationApp = () => {
         splash.particles = splash.particles.filter(p => {
           p.x += p.vx;
           p.y += p.vy;
-          p.vy += 0.2;
-          p.life -= 1;
+          p.vy += config.gravity * config.speed;
+          p.life -= config.speed;
 
           if (p.life > 0) {
             ctx.fillStyle = p.color;
-            ctx.globalAlpha = p.life / 100;
+            ctx.globalAlpha = p.life / config.particleLife;
             ctx.beginPath();
-            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+            ctx.arc(p.x, p.y, config.particleSize * config.size, 0, Math.PI * 2);
             ctx.fill();
             ctx.globalAlpha = 1;
             return true;
@@ -527,12 +786,13 @@ const AnimationApp = () => {
       animationRef.current = requestAnimationFrame(draw);
     };
     draw();
+
+    return () => clearInterval(intervalId);
   };
 
-  // Animation 12: Hexagon Grid
-  const createHexagonGrid = (ctx, canvas) => {
+  const createHexagonGrid = (ctx, canvas, config) => {
     const hexagons = [];
-    const size = 30;
+    const size = config.hexSize * config.size;
     const cols = Math.ceil(canvas.width / (size * 1.5));
     const rows = Math.ceil(canvas.height / (size * Math.sqrt(3)));
 
@@ -551,7 +811,7 @@ const AnimationApp = () => {
 
       hexagons.forEach(hex => {
         const brightness = (Math.sin(time + hex.phase) + 1) / 2;
-        ctx.fillStyle = `hsl(${200 + brightness * 60}, 70%, ${30 + brightness * 40}%)`;
+        ctx.fillStyle = `hsl(${(config.baseHue + brightness * config.hueVariation + config.hueShift) % 360}, 70%, ${config.brightnessMin + brightness * (config.brightnessMax - config.brightnessMin)}%)`;
         
         ctx.beginPath();
         for (let i = 0; i < 6; i++) {
@@ -565,21 +825,20 @@ const AnimationApp = () => {
         ctx.fill();
       });
 
-      time += 0.05;
+      time += config.waveSpeed * config.speed;
       animationRef.current = requestAnimationFrame(draw);
     };
     draw();
   };
 
-  // Animation 13: Star Field
-  const createStarField = (ctx, canvas) => {
+  const createStarField = (ctx, canvas, config) => {
     const stars = [];
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < config.starCount; i++) {
       stars.push({
         x: Math.random() * canvas.width - canvas.width / 2,
         y: Math.random() * canvas.height - canvas.height / 2,
         z: Math.random() * canvas.width,
-        color: `hsl(${Math.random() * 60 + 200}, 70%, 70%)`
+        color: `hsl(${(config.baseHue + Math.random() * config.hueVariation + config.hueShift) % 360}, 70%, 70%)`
       });
     }
 
@@ -588,7 +847,7 @@ const AnimationApp = () => {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       stars.forEach(star => {
-        star.z -= 5;
+        star.z -= config.baseSpeed * config.speed;
         if (star.z <= 0) {
           star.z = canvas.width;
           star.x = Math.random() * canvas.width - canvas.width / 2;
@@ -597,11 +856,11 @@ const AnimationApp = () => {
 
         const sx = (star.x / star.z) * canvas.width + canvas.width / 2;
         const sy = (star.y / star.z) * canvas.height + canvas.height / 2;
-        const size = (1 - star.z / canvas.width) * 5;
+        const starSize = (1 - star.z / canvas.width) * config.maxStarSize * config.size;
 
         ctx.fillStyle = star.color;
         ctx.beginPath();
-        ctx.arc(sx, sy, size, 0, Math.PI * 2);
+        ctx.arc(sx, sy, starSize, 0, Math.PI * 2);
         ctx.fill();
       });
 
@@ -610,25 +869,26 @@ const AnimationApp = () => {
     draw();
   };
 
-  // Animation 14: Magnetic Particles
-  const createMagneticParticles = (ctx, canvas) => {
+  const createMagneticParticles = (ctx, canvas, config) => {
     const particles = [];
     let mouseX = canvas.width / 2;
     let mouseY = canvas.height / 2;
 
-    canvas.addEventListener('mousemove', (e) => {
+    const handleMouseMove = (e) => {
       const rect = canvas.getBoundingClientRect();
       mouseX = e.clientX - rect.left;
       mouseY = e.clientY - rect.top;
-    });
+    };
 
-    for (let i = 0; i < 100; i++) {
+    canvas.addEventListener('mousemove', handleMouseMove);
+
+    for (let i = 0; i < config.particleCount; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         vx: 0,
         vy: 0,
-        color: `hsl(${Math.random() * 360}, 70%, 60%)`
+        color: `hsl(${(config.baseHue + Math.random() * 360 + config.hueShift) % 360}, 70%, 60%)`
       });
     }
 
@@ -640,52 +900,55 @@ const AnimationApp = () => {
         const dx = mouseX - p.x;
         const dy = mouseY - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const force = Math.min(200 / dist, 5);
+        const force = Math.min(config.minDistance / dist, config.maxForce) * config.speed;
 
-        p.vx += (dx / dist) * force * 0.1;
-        p.vy += (dy / dist) * force * 0.1;
-        p.vx *= 0.95;
-        p.vy *= 0.95;
+        p.vx += (dx / dist) * force * config.magnetForce;
+        p.vy += (dy / dist) * force * config.magnetForce;
+        p.vx *= config.friction;
+        p.vy *= config.friction;
         p.x += p.vx;
         p.y += p.vy;
 
         ctx.fillStyle = p.color;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, config.particleSize * config.size, 0, Math.PI * 2);
         ctx.fill();
       });
 
       animationRef.current = requestAnimationFrame(draw);
     };
     draw();
+
+    return () => canvas.removeEventListener('mousemove', handleMouseMove);
   };
 
-  // Animation 15: Ripple Effect
-  const createRippleEffect = (ctx, canvas) => {
+  const createRippleEffect = (ctx, canvas, config) => {
     const ripples = [];
 
-    canvas.addEventListener('click', (e) => {
+    const handleClick = (e) => {
       const rect = canvas.getBoundingClientRect();
       ripples.push({
         x: e.clientX - rect.left,
         y: e.clientY - rect.top,
         radius: 0,
-        maxRadius: 200,
-        color: `hsl(${Math.random() * 360}, 70%, 60%)`
+        maxRadius: config.maxRadius * config.size,
+        color: `hsl(${(config.baseHue + Math.random() * 360 + config.hueShift) % 360}, 70%, 60%)`
       });
-    });
+    };
+
+    canvas.addEventListener('click', handleClick);
 
     const draw = () => {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ripples.forEach((ripple, index) => {
-        ripple.radius += 3;
+        ripple.radius += config.rippleSpeed * config.speed;
         const alpha = 1 - ripple.radius / ripple.maxRadius;
 
         ctx.strokeStyle = ripple.color;
         ctx.globalAlpha = alpha;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = config.lineWidth * config.size;
         ctx.beginPath();
         ctx.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
         ctx.stroke();
@@ -699,18 +962,18 @@ const AnimationApp = () => {
       animationRef.current = requestAnimationFrame(draw);
     };
     draw();
+
+    return () => canvas.removeEventListener('click', handleClick);
   };
 
-  // Animation 16: Carousel Spin
-  const createCarouselSpin = (ctx, canvas) => {
+  const createCarouselSpin = (ctx, canvas, config) => {
     const items = [];
-    const numItems = 12;
     let rotation = 0;
 
-    for (let i = 0; i < numItems; i++) {
+    for (let i = 0; i < config.itemCount; i++) {
       items.push({
-        angle: (Math.PI * 2 / numItems) * i,
-        color: `hsl(${(360 / numItems) * i}, 70%, 60%)`
+        angle: (Math.PI * 2 / config.itemCount) * i,
+        color: `hsl(${(config.baseHue + (360 / config.itemCount) * i + config.hueShift) % 360}, 70%, 60%)`
       });
     }
 
@@ -720,39 +983,38 @@ const AnimationApp = () => {
 
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
-      const radius = 150;
+      const radius = 150 * config.size;
 
       items.forEach(item => {
         const angle = item.angle + rotation;
         const x = centerX + Math.cos(angle) * radius;
-        const y = centerY + Math.sin(angle) * radius * 0.5;
+        const y = centerY + Math.sin(angle) * radius * config.perspective;
         const z = Math.sin(angle);
-        const size = 20 + z * 10;
+        const itemSize = (config.baseSize + z * config.sizeVariation) * config.size;
 
         ctx.fillStyle = item.color;
         ctx.globalAlpha = (z + 1) / 2;
         ctx.beginPath();
-        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.arc(x, y, itemSize, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 1;
       });
 
-      rotation += 0.02;
+      rotation += config.rotationSpeed * config.speed;
       animationRef.current = requestAnimationFrame(draw);
     };
     draw();
   };
 
-  // Animation 17: Fluid Simulation
-  const createFluidSimulation = (ctx, canvas) => {
+  const createFluidSimulation = (ctx, canvas, config) => {
     const particles = [];
-    for (let i = 0; i < 150; i++) {
+    for (let i = 0; i < config.particleCount; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 2,
-        vy: (Math.random() - 0.5) * 2,
-        color: `hsl(${180 + Math.random() * 60}, 70%, 60%)`
+        vx: (Math.random() - 0.5) * config.baseVelocity,
+        vy: (Math.random() - 0.5) * config.baseVelocity,
+        color: `hsl(${(config.baseHue + Math.random() * config.hueVariation + config.hueShift) % 360}, 70%, 60%)`
       });
     }
 
@@ -767,16 +1029,16 @@ const AnimationApp = () => {
             const dy = other.y - p.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             
-            if (dist < 50 && dist > 0) {
-              const force = (50 - dist) / 50;
-              p.vx -= (dx / dist) * force * 0.1;
-              p.vy -= (dy / dist) * force * 0.1;
+            if (dist < config.interactionDistance * config.size && dist > 0) {
+              const force = (config.interactionDistance * config.size - dist) / (config.interactionDistance * config.size);
+              p.vx -= (dx / dist) * force * config.repulsionForce * config.speed;
+              p.vy -= (dy / dist) * force * config.repulsionForce * config.speed;
             }
           }
         });
 
-        p.vx *= 0.99;
-        p.vy *= 0.99;
+        p.vx *= config.friction;
+        p.vy *= config.friction;
         p.x += p.vx;
         p.y += p.vy;
 
@@ -785,7 +1047,7 @@ const AnimationApp = () => {
 
         ctx.fillStyle = p.color;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, config.particleSize * config.size, 0, Math.PI * 2);
         ctx.fill();
       });
 
@@ -794,16 +1056,15 @@ const AnimationApp = () => {
     draw();
   };
 
-  // Animation 18: Target Practice
-  const createTargetPractice = (ctx, canvas) => {
+  const createTargetPractice = (ctx, canvas, config) => {
     const targets = [];
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
 
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < config.ringCount; i++) {
       targets.push({
-        radius: 30 + i * 25,
-        color: i % 2 === 0 ? `hsl(${i * 20}, 70%, 50%)` : `hsl(${i * 20 + 180}, 70%, 50%)`
+        radius: (config.baseRadius + i * config.radiusIncrement) * config.size,
+        color: `hsl(${(config.baseHue + i * config.hueIncrement + config.hueShift) % 360}, 70%, 50%)`
       });
     }
 
@@ -825,28 +1086,27 @@ const AnimationApp = () => {
 
       ctx.restore();
 
-      rotation += 0.02;
+      rotation += config.rotationSpeed * config.speed;
       animationRef.current = requestAnimationFrame(draw);
     };
     draw();
   };
 
-  // Animation 19: Vortex Flow
-  const createVortexFlow = (ctx, canvas) => {
+  const createVortexFlow = (ctx, canvas, config) => {
     const particles = [];
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
 
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < config.particleCount; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const radius = Math.random() * 300;
+      const radius = Math.random() * config.maxRadius * config.size;
       particles.push({
         x: centerX + Math.cos(angle) * radius,
         y: centerY + Math.sin(angle) * radius,
         angle,
         radius,
-        speed: 0.02 + Math.random() * 0.02,
-        color: `hsl(${Math.random() * 360}, 70%, 60%)`
+        speed: (config.baseSpeed + Math.random() * config.speedVariation) * config.speed,
+        color: `hsl(${(config.baseHue + Math.random() * 360 + config.hueShift) % 360}, 70%, 60%)`
       });
     }
 
@@ -856,10 +1116,10 @@ const AnimationApp = () => {
 
       particles.forEach(p => {
         p.angle += p.speed;
-        p.radius -= 0.5;
+        p.radius -= config.pullSpeed * config.speed;
 
-        if (p.radius < 10) {
-          p.radius = 300;
+        if (p.radius < config.minRadius * config.size) {
+          p.radius = config.maxRadius * config.size;
           p.angle = Math.random() * Math.PI * 2;
         }
 
@@ -867,9 +1127,9 @@ const AnimationApp = () => {
         p.y = centerY + Math.sin(p.angle) * p.radius;
 
         ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.radius / 300;
+        ctx.globalAlpha = p.radius / (config.maxRadius * config.size);
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, config.particleSize * config.size, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 1;
       });
@@ -879,8 +1139,7 @@ const AnimationApp = () => {
     draw();
   };
 
-  // Animation 20: Sparkle Trail
-  const createSparkleTrail = (ctx, canvas) => {
+  const createSparkleTrail = (ctx, canvas, config) => {
     const sparkles = [];
     let mouseX = canvas.width / 2;
     let mouseY = canvas.height / 2;
@@ -888,53 +1147,55 @@ const AnimationApp = () => {
     let autoY = canvas.height / 2;
     let autoAngle = 0;
 
-    canvas.addEventListener('mousemove', (e) => {
+    const handleMouseMove = (e) => {
       const rect = canvas.getBoundingClientRect();
       mouseX = e.clientX - rect.left;
       mouseY = e.clientY - rect.top;
       
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < config.sparklesPerFrame; i++) {
         sparkles.push({
           x: mouseX + (Math.random() - 0.5) * 10,
           y: mouseY + (Math.random() - 0.5) * 10,
-          vx: (Math.random() - 0.5) * 2,
-          vy: (Math.random() - 0.5) * 2,
-          life: 60,
-          size: 2 + Math.random() * 4,
-          color: `hsl(${Math.random() * 360}, 70%, 60%)`
+          vx: (Math.random() - 0.5) * config.baseVelocity,
+          vy: (Math.random() - 0.5) * config.baseVelocity,
+          life: config.particleLife,
+          size: (config.baseSize + Math.random() * config.sizeVariation) * config.size,
+          color: `hsl(${(config.baseHue + Math.random() * 360 + config.hueShift) % 360}, 70%, 60%)`
         });
       }
-    });
+    };
+
+    canvas.addEventListener('mousemove', handleMouseMove);
 
     const draw = () => {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      autoAngle += 0.05;
-      autoX = canvas.width / 2 + Math.cos(autoAngle) * 150;
-      autoY = canvas.height / 2 + Math.sin(autoAngle) * 100;
+      autoAngle += config.autoSpeed * config.speed;
+      autoX = canvas.width / 2 + Math.cos(autoAngle) * config.autoRadius * config.size;
+      autoY = canvas.height / 2 + Math.sin(autoAngle) * config.autoRadiusY * config.size;
 
-      for (let i = 0; i < 2; i++) {
+      for (let i = 0; i < config.autoSparkles; i++) {
         sparkles.push({
           x: autoX + (Math.random() - 0.5) * 10,
           y: autoY + (Math.random() - 0.5) * 10,
-          vx: (Math.random() - 0.5) * 2,
-          vy: (Math.random() - 0.5) * 2,
-          life: 60,
-          size: 2 + Math.random() * 4,
-          color: `hsl(${(autoAngle * 50) % 360}, 70%, 60%)`
+          vx: (Math.random() - 0.5) * config.baseVelocity,
+          vy: (Math.random() - 0.5) * config.baseVelocity,
+          life: config.particleLife,
+          size: (config.baseSize + Math.random() * config.sizeVariation) * config.size,
+          color: `hsl(${((autoAngle * 50 + config.hueShift) % 360)}, 70%, 60%)`
         });
       }
 
       sparkles.forEach((sparkle, index) => {
         sparkle.x += sparkle.vx;
         sparkle.y += sparkle.vy;
-        sparkle.life -= 1;
+        sparkle.life -= config.speed;
 
-        const alpha = sparkle.life / 60;
+        const alpha = sparkle.life / config.particleLife;
         ctx.fillStyle = sparkle.color;
         ctx.globalAlpha = alpha;
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = config.glowAmount;
         ctx.shadowColor = sparkle.color;
         ctx.beginPath();
         ctx.arc(sparkle.x, sparkle.y, sparkle.size, 0, Math.PI * 2);
@@ -950,26 +1211,202 @@ const AnimationApp = () => {
       animationRef.current = requestAnimationFrame(draw);
     };
     draw();
+
+    return () => canvas.removeEventListener('mousemove', handleMouseMove);
   };
 
   return (
-    <div className="app-container">
-      <div className="sidebar">
-        <h1 className="title">✨ Satisfying Animations</h1>
-        <div className="animation-list">
-          {animations.map((anim) => (
+    <div style={{
+      display: 'flex',
+      height: '100vh',
+      width: '100vw',
+      background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%)',
+      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+    }}>
+      {/* Sidebar */}
+      <div style={{
+        width: '280px',
+        background: 'rgba(20, 20, 40, 0.95)',
+        backdropFilter: 'blur(10px)',
+        padding: '20px',
+        overflowY: 'auto',
+        boxShadow: '4px 0 20px rgba(0, 0, 0, 0.5)',
+        borderRight: '1px solid rgba(255, 255, 255, 0.1)'
+      }}>
+        <h1 style={{
+          fontSize: '24px',
+          fontWeight: '700',
+          color: '#fff',
+          marginBottom: '30px',
+          textAlign: 'center',
+          background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+        }}>
+          ✨ Satisfying Animations
+        </h1>
+
+        {/* Controls */}
+        <div style={{
+          marginBottom: '30px',
+          padding: '15px',
+          background: 'rgba(40, 40, 80, 0.4)',
+          borderRadius: '12px',
+          border: '1px solid rgba(100, 100, 255, 0.2)'
+        }}>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{
+              display: 'block',
+              color: '#fff',
+              fontSize: '13px',
+              marginBottom: '8px',
+              fontWeight: '500'
+            }}>
+              Speed: {speed.toFixed(1)}x
+            </label>
+            <input
+              type="range"
+              min="0.1"
+              max="3"
+              step="0.1"
+              value={speed}
+              onChange={(e) => setSpeed(parseFloat(e.target.value))}
+              style={{
+                width: '100%',
+                accentColor: '#667eea'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{
+              display: 'block',
+              color: '#fff',
+              fontSize: '13px',
+              marginBottom: '8px',
+              fontWeight: '500'
+            }}>
+              Size: {size.toFixed(1)}x
+            </label>
+            <input
+              type="range"
+              min="0.3"
+              max="2"
+              step="0.1"
+              value={size}
+              onChange={(e) => setSize(parseFloat(e.target.value))}
+              style={{
+                width: '100%',
+                accentColor: '#667eea'
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{
+              display: 'block',
+              color: '#fff',
+              fontSize: '13px',
+              marginBottom: '8px',
+              fontWeight: '500'
+            }}>
+              Color Shift: {hueShift}°
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="360"
+              step="10"
+              value={hueShift}
+              onChange={(e) => setHueShift(parseInt(e.target.value))}
+              style={{
+                width: '100%',
+                accentColor: '#667eea'
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Animation List */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px'
+        }}>
+          {animationData.map((anim) => (
             <button
               key={anim.id}
-              className={`animation-button ${selectedAnimation === anim.id ? 'active' : ''}`}
               onClick={() => setSelectedAnimation(anim.id)}
+              style={{
+                padding: '14px 18px',
+                background: selectedAnimation === anim.id
+                  ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%)'
+                  : 'rgba(40, 40, 80, 0.6)',
+                border: selectedAnimation === anim.id
+                  ? '2px solid rgba(102, 126, 234, 0.8)'
+                  : '2px solid rgba(100, 100, 255, 0.3)',
+                borderRadius: '12px',
+                color: '#fff',
+                fontSize: '15px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                transform: selectedAnimation === anim.id ? 'translateX(8px) scale(1.02)' : 'none',
+                boxShadow: selectedAnimation === anim.id
+                  ? '0 8px 30px rgba(102, 126, 234, 0.6)'
+                  : 'none'
+              }}
+              onMouseEnter={(e) => {
+                if (selectedAnimation !== anim.id) {
+                  e.currentTarget.style.background = 'rgba(60, 60, 120, 0.8)';
+                  e.currentTarget.style.borderColor = 'rgba(100, 150, 255, 0.6)';
+                  e.currentTarget.style.transform = 'translateX(8px)';
+                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(100, 100, 255, 0.3)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedAnimation !== anim.id) {
+                  e.currentTarget.style.background = 'rgba(40, 40, 80, 0.6)';
+                  e.currentTarget.style.borderColor = 'rgba(100, 100, 255, 0.3)';
+                  e.currentTarget.style.transform = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                }
+              }}
             >
               {anim.name}
+              {selectedAnimation === anim.id && (
+                <span style={{
+                  float: 'right',
+                  fontSize: '12px'
+                }}>▶</span>
+              )}
             </button>
           ))}
         </div>
       </div>
-      <div className="canvas-container">
-        <canvas ref={canvasRef} className="animation-canvas" />
+
+      {/* Canvas Container */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+        position: 'relative'
+      }}>
+        <canvas
+          ref={canvasRef}
+          style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: '16px',
+            boxShadow: '0 10px 50px rgba(0, 0, 0, 0.5)',
+            background: 'rgba(0, 0, 0, 0.8)',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}
+        />
       </div>
     </div>
   );
